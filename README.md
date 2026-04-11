@@ -17,17 +17,40 @@ Replace this paragraph with your own summary of what your version does.
 
 ## How The System Works
 
-Explain your design in plain language.
+This is a content-based recommender, so it compares each song's features to the user's taste profile instead of looking at what other people liked.
 
-Some prompts to answer:
+The system uses these song features:
+- Genre and mood as the main categorical signals
+- Energy, acousticness, danceability, valence, and tempo as numeric signals
 
-- What features does each `Song` use in your system
-  - For example: genre, mood, energy, tempo
-- What information does your `UserProfile` store
-- How does your `Recommender` compute a score for each song
-- How do you choose which songs to recommend
+The user profile stores:
+- Favorite genre
+- Favorite mood
+- Target energy
+- Acoustic preference
+- Optional extra targets like tempo, valence, and danceability for a little more detail
 
-You can include a simple diagram or bullet list if helpful.
+Algorithm recipe:
+1. Read one song from the CSV.
+2. Compare it with the user profile.
+3. Add points for exact matches like genre and mood.
+4. Add similarity points for numeric features, where closer values score better.
+5. Sum the points into one total score for that song.
+6. Repeat for every song in the file.
+7. Sort all songs from highest score to lowest score.
+8. Return the top k recommendations.
+
+My starting weights are:
+- Genre match: +2.0
+- Mood match: +1.0
+- Energy closeness: weighted similarity score
+- Acousticness, tempo, valence, and danceability: smaller similarity-based boosts
+
+This balance gives genre a little more influence than mood, but still leaves room for the numeric features to separate songs that feel similar on the surface. For example, it can tell apart intense rock from chill lo-fi without making the system feel too rigid.
+
+Potential bias:
+- This system might over-prioritize genre and miss great songs that match the user's mood or energy better.
+- It can also reflect the limits of the small catalog, so if a genre is underrepresented, the recommendations will be too.
 
 ---
 
@@ -53,6 +76,10 @@ pip install -r requirements.txt
 ```bash
 python -m src.main
 ```
+
+### Example Terminal Output
+
+![Terminal output screenshot](images/terminal_output.jpg)
 
 ### Running Tests
 

@@ -1,0 +1,11 @@
+flowchart TD
+    A[Input: User Prefs] --> B[Load Songs from CSV]
+    B --> C[For Each Song in the CSV]
+    C --> D[Compare Song to User Prefs]
+    D --> E[Apply Scoring Logic]
+    E --> F[Compute Total Score for Song]
+    F --> G[Store Scored Song]
+    G --> C
+
+    C --> H[Output: Rank All Songs by Score]
+    H --> I[Return Top K Recommendations]
