@@ -1,6 +1,6 @@
 import csv
 
-from typing import List, Dict, Tuple, Optional
+from typing import List, Dict, Tuple
 from dataclasses import dataclass
 
 
@@ -46,12 +46,42 @@ class Recommender:
         self.songs = songs
 
     def recommend(self, user: UserProfile, k: int = 5) -> List[Song]:
-        # TODO: Implement recommendation logic
-        return self.songs[:k]
+        ranked = sorted(
+            self.songs,
+            key=lambda song: score_song(
+                _user_profile_to_prefs(user), _song_to_dict(song)
+            )[0],
+            reverse=True,
+        )
+        return ranked[:k]
 
     def explain_recommendation(self, user: UserProfile, song: Song) -> str:
-        # TODO: Implement explanation logic
-        return "Explanation placeholder"
+        _, reasons = score_song(_user_profile_to_prefs(user), _song_to_dict(song))
+        return "; ".join(reasons)
+
+
+def _song_to_dict(song: Song) -> Dict:
+    return {
+        "id": song.id,
+        "title": song.title,
+        "artist": song.artist,
+        "genre": song.genre,
+        "mood": song.mood,
+        "energy": song.energy,
+        "tempo_bpm": song.tempo_bpm,
+        "valence": song.valence,
+        "danceability": song.danceability,
+        "acousticness": song.acousticness,
+    }
+
+
+def _user_profile_to_prefs(user: UserProfile) -> Dict:
+    return {
+        "favorite_genre": user.favorite_genre,
+        "favorite_mood": user.favorite_mood,
+        "target_energy": user.target_energy,
+        "likes_acoustic": user.likes_acoustic,
+    }
 
 
 def load_songs(csv_path: str) -> List[Dict]:
@@ -91,8 +121,8 @@ def score_song(user_prefs: Dict, song: Dict) -> Tuple[float, List[str]]:
     )
 
     if song["genre"] == favorite_genre:
-        score += 2.0
-        reasons.append("genre match (+2.0)")
+        score += 1.0
+        reasons.append("genre match (+1.0)")
 
     if song["mood"] == favorite_mood:
         score += 1.0
@@ -100,7 +130,7 @@ def score_song(user_prefs: Dict, song: Dict) -> Tuple[float, List[str]]:
 
     # Closeness-based energy score: exact match gets full points.
     energy_similarity = max(0.0, 1.0 - abs(float(song["energy"]) - target_energy))
-    energy_points = 1.25 * energy_similarity
+    energy_points = 2.50 * energy_similarity
     score += energy_points
     reasons.append(f"energy closeness ({energy_similarity:.2f}) (+{energy_points:.2f})")
 
